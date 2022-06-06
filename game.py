@@ -1,8 +1,11 @@
 #importando as bibliotecas usadas no jogo
+from re import A
+from secrets import choice
 import time #import do time para usar na animacao da tela inicial
 import pandas as pd #import do panda para ler a planiha com as palavras
 import random #import do random para escolher a palavra do jogo
 import os #import do os para limpar a tela do terminal
+import images as im #importando o arquivo imagens para formar as telas
 
 #criando a variavel do banco de dados e acessando o arquivo com as palavras
 banco_de_dados_palavras = pd.read_excel('C:\\Users\\Daniel Jordan\\OneDrive\\Ironhack\\Projeto_Forca\\banco de dados forca.xlsx')
@@ -35,14 +38,7 @@ fps = 0
 #animacao de load na tela de abertura
 while fps < 19:
     os.system('cls' if os.name == 'nt' else clear)
-    print(r'''
-    ███████╗ ██████╗ ██████╗  ██████╗ █████╗ 
-    ██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔══██╗
-    █████╗  ██║   ██║██████╔╝██║     ███████║
-    ██╔══╝  ██║   ██║██╔══██╗██║     ██╔══██║
-    ██║     ╚██████╔╝██║  ██║╚██████╗██║  ██║
-    ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝                                                                        
-    ''')
+    im.tela_inicial()
     #printando a barra de progresso que incrementa em cada loop passando a ideia de animacao
     print('Carregando  ' + '█ ' * fps)
     fps += 1
@@ -52,17 +48,7 @@ while fps < 19:
 time.sleep(1)
 os.system('cls' if os.name == 'nt' else clear)
 #criando dicionario com os caracteres que vao ser usado no jogo
-forca = {
-         1:r' ╔═══╗',
-         2:r' |   ║',
-         3:r'     ║',
-         4:r' O   ║',
-         5:r'/|   ║',
-         6:r'/|\  ║',
-         7:r'/    ║',
-         8:r'/ \  ║',
-         9:r'...  ║'
-         }
+
 #criando o dicionario que fazem a imagem do boneco da forca se formar
 forca_status = {
             'forca_0' : (1,2,3,3,3,3),
@@ -75,19 +61,19 @@ forca_status = {
             'forca_7' : (1,2,4,9,6,8)
             }
 #criando funcao para limpar a tela e depois imprimir a tela atualizada
-def imprimir_tela(indices:list,y=forca):
+def imprimir_tela(indices:list,y=im.imagen_forca()):
     '''Imprime a tela do Jogo'''
     x = 0
-    print('╔'+('═'* 58)+'╗') #primeira linha da tela do jogo
-    print('║' + 23*' ' + 'JOGO DA FORCA' + 22*' ' + '║')#segunda linha da tela do jogo
-    print('╠'+ '═'* 58 + '╣')#terceira linha da tela do jogo
+    print('╔'+ 12*'═' +'╦' +('═'* 45)+'╗') #primeira linha da tela do jogo
+    print('║'+ f' CHANCES: {7-erros} ║' + 16*' ' + 'JOGO DA FORCA' + 16*' ' + '║')#segunda linha da tela do jogo
+    print('╠'+  12 *'═' + '╬' +'═'* 45 + '╣')#terceira linha da tela do jogo
     #criando laco para buscar do dicionario e imprimir o boneco
     for indice in indices:    
         if x == 5:
-            print(f'║  {y[indice]}   ' + mensagem +(47 - len(mensagem)) * ' ' + '║')
-        print(f'║  {y[indice]}' + (largura - 10) * ' ' + '║')
+            print(f'{y[indice]}   ' + mensagem +(42 - len(mensagem)) * ' ' + '║')
+        print(f'{y[indice]}' + (largura - 15) * ' ' + '║')
         x +=1
-    print('╠' +'═'*58 + '╣')
+    print('╠' +'═'*12 +'╩' +'═'*45 + '╣')
     #criando a lista do alfabeto 
     linha_alfabeto = " ".join(letras).upper()
     #verificando se a letra esta na lista de letras erradas e colorindo ela de vermelho
@@ -100,8 +86,8 @@ def imprimir_tela(indices:list,y=forca):
     #imprimindo a categoria da palavra
     print('║  CATEGORIA - ' + tipo_da_palavra + ' '*(44 - (len(tipo_da_palavra))) + '║' )
     print('╚' + '═'*58 + '╝')
-    
-    
+
+
 
 os.system('cls' if os.name == 'nt' else clear)
 #limpando a tela e chamando a funcao de imprimir a tela ela usa o metodo get para consultar o dicionario e ver qual boneco ela tem que imrimir
@@ -157,23 +143,52 @@ while True:
     imprimir_tela(status)
     #verificando se o usuario ja ganhou
     if acertos == len(''.join(set(palavra_escolhida.replace(' ', '')))):
-        print('PARABENS VOCE GANHOU O JOGO')
+        os.system('cls' if os.name == 'nt' else clear)
+        im.tela_vitoria()
+        #verificando se o usuario quer jogar novamente
+        resposta = ''
+        while resposta != 'S' and resposta != 'SIM' and resposta != 'N' and resposta != 'NAO':
+            resposta = input('QUER JOGAR NOVAMENTE?').upper()
+            print(resposta)
+        #redefinindo variaveis para comecar um novo jogo
+        if resposta == 'S' or resposta == 'SIM':
+            escolha = random.randrange(0,90)
+            palavra_escolhida = (banco_de_dados_palavras.Descricao[escolha]).upper()
+            tipo_da_palavra = (banco_de_dados_palavras.Tipo[escolha]).upper()
+            letras = ['a', 'b', 'c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','y','z']
+            letras_erradas = []
+            letras_corretas = []
+            erros = 0
+            acertos = 0
+            largura = 60
+            mensagem = len(palavra_escolhida) * '_  '
+            status = forca_status.get('forca_0')
+            os.system('cls' if os.name == 'nt' else clear)
+            imprimir_tela(forca_status.get('forca_0'))
+        if resposta == 'N' or resposta == 'NAO':
+            break
+    #verificando se o usuário perdeu o jogo       
     if erros == 7:
         os.system('cls' if os.name == 'nt' else clear)
-        print('''
-
-         ██████╗  █████╗  ███╗   ███╗███████╗      
-         ██╔════╝ ██╔══██╗████╗ ████║██╔════╝    
-         ██║  ███╗███████║██╔████╔██║█████╗      
-         ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      
-         ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    
-          ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     
-
-          ██████╗ ██╗   ██╗███████╗██████╗
-          ██╔═══██╗██║   ██║██╔════╝██╔══██╗
-          ██║   ██║██║   ██║█████╗  ██████╔╝
-          ██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗
-          ╚██████╔╝ ╚████╔╝ ███████╗██║  ██║
-          ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝
-    ''')     
-    
+        im.tela_game_over()
+        print(f'              A PALAVRA ERA: {palavra_escolhida}\n')
+        resposta = ''
+        while resposta != 'S' and resposta != 'SIM' and resposta != 'N' and resposta != 'NAO':
+            resposta = input('QUER JOGAR NOVAMENTE? ').upper()
+            print(resposta)
+        if resposta == 'S' or resposta == 'SIM':
+            escolha = random.randrange(0,90)
+            palavra_escolhida = (banco_de_dados_palavras.Descricao[escolha]).upper()
+            tipo_da_palavra = (banco_de_dados_palavras.Tipo[escolha]).upper()
+            letras = ['a', 'b', 'c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','y','z']
+            letras_erradas = []
+            letras_corretas = []
+            erros = 0
+            acertos = 0
+            largura = 60
+            mensagem = len(palavra_escolhida) * '_  '
+            status = forca_status.get('forca_0')
+            os.system('cls' if os.name == 'nt' else clear)
+            imprimir_tela(forca_status.get('forca_0'))
+        if resposta == 'N' or resposta == 'NAO':
+            break
